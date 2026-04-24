@@ -71,3 +71,20 @@ export const getSession = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+
+
+export const createExam = async (req, res) => {
+  try {
+    const data = req.validatedData;
+
+    // DB logic later
+    res.status(201).json({
+      success: true,
+      message: "Exam created successfully",
+      data,
+    });
+
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
