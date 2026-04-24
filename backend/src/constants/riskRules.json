@@ -1,0 +1,82 @@
+{
+  "initialTrustScore": 100,
+
+  "deductions": {
+    "TAB_SWITCH": {
+      "points": 20,
+      "reason": "Tab switching detected"
+    },
+    "WINDOW_BLUR": {
+      "points": 10,
+      "reason": "Window lost focus"
+    },
+    "NO_FACE": {
+      "points": 30,
+      "reason": "No face detected"
+    },
+    "MULTIPLE_FACE": {
+      "points": 40,
+      "reason": "Multiple faces detected"
+    },
+    "GAZE_AWAY": {
+      "points": 15,
+      "reason": "Gaze deviation detected"
+    },
+    "COPY_PASTE": {
+      "points": 25,
+      "reason": "Copy-paste attempt detected"
+    },
+    "BEHAVIOR_ANOMALY": {
+      "points": 15,
+      "reason": "Behavioral anomaly detected"
+    },
+    "IDLE": {
+      "points": 10,
+      "reason": "User inactive for long duration"
+    },
+    "DEVICE_CHANGE": {
+      "points": 40,
+      "reason": "Device change detected"
+    },
+    "NETWORK_ANOMALY": {
+      "points": 10,
+      "reason": "Network instability detected"
+    },
+    "AUDIO_NOISE": {
+      "points": 20,
+      "reason": "Background voice/noise detected"
+    }
+  },
+
+  "riskLevels": {
+    "TRUSTED": {
+      "min": 80,
+      "max": 100,
+      "label": "Trusted"
+    },
+    "WARNING": {
+      "min": 50,
+      "max": 79,
+      "label": "Warning"
+    },
+    "HIGH_RISK": {
+      "min": 0,
+      "max": 49,
+      "label": "High Risk"
+    }
+  },
+
+  "autoActions": {
+    "highRiskDurationThresholdSec": 120,
+    "autoSubmit": true,
+    "warningBeforeSubmitSec": 30
+  },
+
+  "aiConfig": {
+    "enableAI": true,
+    "confidenceThresholds": {
+      "low": 40,
+      "medium": 70
+    }
+  }
+}
