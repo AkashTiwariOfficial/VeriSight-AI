@@ -1,7 +1,7 @@
 // backend/src/routes/exam.routes.js
 
 import express from "express";
-import { protect, } from "../middleware/auth.middleware.js";
+import { protect } from "../middleware/auth.middleware.js";
 import { authorize } from "../middleware/role.middleware.js";
 import { validate, createExamSchema } from "../validators/exam.validator.js";
 import { createExam } from "../controllers/exam.controller.js";
@@ -13,7 +13,6 @@ import {
   getSession,
 } from "../controllers/exam.controller.js";
 
-import { protect } from "../middleware/auth.js";
 
 const router = express.Router();
 
