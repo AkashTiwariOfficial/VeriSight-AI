@@ -1,49 +1,29 @@
-// backend/src/app.js
-
-import express from "express";
-import cors from "cors";
-
-import examRoutes from "./routes/exam.routes.js";
-import adminRoutes from "./routes/admin.routes.js"; // optional if you have
-
-import { apiLimiter } from "./middleware/rateLimit.middleware.js";
-import { notFound, errorHandler } from "./middleware/error.middleware.js";
+import express from 'express';
+import cors from 'cors';
+import helmet from 'helmet';
+import morgan from 'morgan';
+import examRoutes from './routes/exam.routes.js';
 
 const app = express();
 
-// ------------------ CORE MIDDLEWARE ------------------
+app.use(express.json());
+app.use(cors({ origin: '*' }));
+app.use(helmet());
+app.use(morgan('dev'));
 
-app.use(
-  cors({
-    origin: "*", // tighten in production
-    credentials: true,
-  })
-);
+// Healthcheck
+app.get('/api/health', (req, res) => res.status(200).json({ status: 'ok' }));
 
-app.use(express.json({ limit: "10mb" }));
-app.use(express.urlencoded({ extended: true }));
+// Routes
+app.use('/api/exams', examRoutes);
 
-// ------------------ GLOBAL RATE LIMIT ------------------
-
-app.use("/api", apiLimiter);
-
-// ------------------ ROUTES ------------------
-
-app.use("/api/exam", examRoutes);
-app.use("/api/admin", adminRoutes);
-
-// ------------------ HEALTH CHECK ------------------
-
-app.get("/", (req, res) => {
-  res.status(200).json({
-    success: true,
-    message: "🚀 Exam Proctoring API Running",
+// Global Error Handler
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(err.status || 500).json({
+    message: err.message || 'Internal Server Error',
+    stack: process.env.NODE_ENV === 'production' ? null : err.stack
   });
 });
-
-// ------------------ ERROR HANDLING ------------------
-
-app.use(notFound);
-app.use(errorHandler);
 
 export default app;

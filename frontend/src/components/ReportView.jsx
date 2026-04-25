@@ -1,4 +1,4 @@
-import { useExam } from "../context/ExamContext";
+import { useExam } from '../context/ExamContext.jsx';
 
 const ReportView = () => {
   const { state } = useExam();

@@ -1,13 +1,13 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import App from "./App";
+import App from './App.jsx';
 import "./index.css";
 
-import { ExamProvider } from "./context/ExamContext";
-import { fullscreenGuard } from "./utils/sandbox/fullscreenGuard";
-import { preventCopyPaste } from "./utils/sandbox/preventCopyPaste";
-import { preventDevTools } from "./utils/sandbox/preventDevTools";
-import { preventMultipleTabs } from "./utils/sandbox/preventMultipleTabs";
+import { ExamProvider } from './context/ExamContext.jsx';
+import { fullscreenGuard } from './utils/sandbox/fullscreenGuard.js';
+import { preventCopyPaste } from './utils/sandbox/preventCopyPaste.js';
+import { preventDevTools } from './utils/sandbox/preventDevTools.js';
+import { preventMultipleTabs } from './utils/sandbox/preventMultipleTabs.js';
 
 // -------------------- SECURITY BOOTSTRAP --------------------
 fullscreenGuard();

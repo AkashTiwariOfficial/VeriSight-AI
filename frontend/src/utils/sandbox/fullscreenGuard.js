@@ -1,21 +1,23 @@
-export const enableFullscreen = () => {
-  const elem = document.documentElement;
-
-  const requestFullscreen =
-    elem.requestFullscreen ||
-    elem.webkitRequestFullscreen ||
-    elem.msRequestFullscreen;
-
-  requestFullscreen.call(elem);
-};
-
-export const fullscreenGuard = () => {
-  enableFullscreen();
-
-  document.addEventListener("fullscreenchange", () => {
-    if (!document.fullscreenElement) {
-      alert("⚠️ You exited fullscreen. Exam terminated.");
-      window.location.reload();
+export const fullscreenGuard = (onExit) => {
+  const enterFullscreen = () => {
+    const elem = document.documentElement;
+    if (elem.requestFullscreen) {
+      elem.requestFullscreen().catch((err) => console.log('Error attempting to enable fullscreen:', err));
     }
-  });
+  };
+
+  const handleFullscreenChange = () => {
+    if (!document.fullscreenElement) {
+      onExit({ type: 'FULLSCREEN_EXIT', severity: 'MEDIUM', description: 'User exited fullscreen mode' });
+    }
+  };
+
+  document.addEventListener('fullscreenchange', handleFullscreenChange);
+  
+  return {
+    enterFullscreen,
+    cleanup: () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+    }
+  };
 };

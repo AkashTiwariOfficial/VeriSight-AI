@@ -1,100 +1,33 @@
-// backend/src/models/Session.js
+import mongoose from 'mongoose';
 
-import mongoose from "mongoose";
+const eventSchema = new mongoose.Schema({
+  type: { type: String, required: true }, // 'NO_FACE', 'MULTIPLE_FACES', 'TAB_SWITCH', 'NOISE', 'IDLE', 'GAZE_DEVIATION'
+  timestamp: { type: Date, default: Date.now },
+  severity: { type: String, enum: ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'], required: true },
+  description: { type: String },
+  snapshotUrl: { type: String }
+});
 
-const timelineSchema = new mongoose.Schema({
-  time: String,
-  event: String,
-  meta: Object,
-}, { _id: false });
+const sessionSchema = new mongoose.Schema({
+  userId: { type: String, required: true, index: true },
+  examId: { type: String, required: true, index: true },
+  startTime: { type: Date, default: Date.now },
+  endTime: { type: Date },
+  status: { type: String, enum: ['ACTIVE', 'COMPLETED', 'FORCE_SUBMITTED', 'DISQUALIFIED'], default: 'ACTIVE' },
+  
+  trustScore: { type: Number, default: 100, min: 0, max: 100 },
+  cheatingProbability: { type: Number, default: 0, min: 0, max: 100 },
+  riskLevel: { type: String, enum: ['TRUSTED', 'WARNING', 'HIGH_RISK'], default: 'TRUSTED' },
+  
+  deviceFingerprint: { type: Object },
+  networkLogs: [{
+    ip: String,
+    timestamp: Date,
+    userAgent: String
+  }],
+  
+  timelineEvents: [eventSchema],
+  snapshots: [{ url: String, timestamp: Date, reason: String }]
+}, { timestamps: true });
 
-const sessionSchema = new mongoose.Schema(
-  {
-    userId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      required: true,
-      index: true,
-    },
-
-    trustScore: {
-      type: Number,
-      default: 100,
-    },
-
-    riskLevel: {
-      type: String,
-      enum: ["Trusted", "Warning", "High Risk"],
-      default: "Trusted",
-    },
-
-    cheatingProbability: {
-      type: Number,
-      default: 0,
-    },
-
-    confidenceLevel: {
-      type: String,
-      enum: ["Low", "Medium", "High"],
-      default: "Low",
-    },
-
-    suspiciousFlag: {
-      type: Boolean,
-      default: false,
-    },
-
-    tabSwitchCount: {
-      type: Number,
-      default: 0,
-    },
-
-    idleTime: {
-      type: Number,
-      default: 0,
-    },
-
-    typingSpeed: Number,
-    mouseActivity: Number,
-
-    reasons: [String],
-
-    timeline: [timelineSchema],
-
-    snapshots: [
-      {
-        type: String, // file path or URL
-      },
-    ],
-
-    deviceFingerprint: {
-      userAgent: String,
-      screenResolution: String,
-      browser: String,
-      ip: String,
-    },
-
-    networkLogs: [
-      {
-        time: String,
-        status: String,
-      },
-    ],
-
-    status: {
-      type: String,
-      enum: ["active", "paused", "completed", "terminated"],
-      default: "active",
-    },
-
-    startedAt: {
-      type: Date,
-      default: Date.now,
-    },
-
-    endedAt: Date,
-  },
-  { timestamps: true }
-);
-
-export default mongoose.model("Session", sessionSchema);
+export default mongoose.model('Session', sessionSchema);

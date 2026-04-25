@@ -1,11 +1,17 @@
 export const preventCopyPaste = () => {
-  document.addEventListener("copy", (e) => e.preventDefault());
-  document.addEventListener("cut", (e) => e.preventDefault());
-  document.addEventListener("paste", (e) => e.preventDefault());
+  const preventEvent = (e) => {
+    e.preventDefault();
+  };
 
-  document.addEventListener("keydown", (e) => {
-    if (e.ctrlKey && ["c", "v", "x"].includes(e.key)) {
-      e.preventDefault();
-    }
-  });
+  document.addEventListener('copy', preventEvent);
+  document.addEventListener('cut', preventEvent);
+  document.addEventListener('paste', preventEvent);
+  document.addEventListener('selectstart', preventEvent); // Prevent text selection
+
+  return () => {
+    document.removeEventListener('copy', preventEvent);
+    document.removeEventListener('cut', preventEvent);
+    document.removeEventListener('paste', preventEvent);
+    document.removeEventListener('selectstart', preventEvent);
+  };
 };

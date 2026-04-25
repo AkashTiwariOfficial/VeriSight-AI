@@ -1,0 +1,21 @@
+export const RISK_LEVELS = {
+  TRUSTED: "Trusted",
+  WARNING: "Warning",
+  HIGH_RISK: "High Risk",
+  CRITICAL: "Critical",
+};
+
+export const THRESHOLDS = {
+  TAB_SWITCH: 3,
+  NO_FACE_TIME: 5,
+  AUDIO_NOISE: 60,
+  TRUST_MIN: 50,
+};
+
+export const EVENTS = {
+  FACE_MISSING: "FACE_MISSING",
+  MULTIPLE_FACES: "MULTIPLE_FACES",
+  TAB_SWITCH: "TAB_SWITCH",
+  AUDIO_NOISE: "AUDIO_NOISE",
+  COPY_PASTE: "COPY_PASTE",
+};

@@ -1,16 +1,19 @@
-export const preventMultipleTabs = () => {
-  const tabId = Date.now();
-
-  localStorage.setItem("exam_tab", tabId);
-
-  window.addEventListener("storage", (e) => {
-    if (e.key === "exam_tab") {
-      alert("⚠️ Multiple tabs detected!");
-      window.location.reload();
+export const preventMultipleTabs = (onViolation) => {
+  const handleVisibilityChange = () => {
+    if (document.hidden) {
+      onViolation({ type: 'TAB_SWITCH', severity: 'HIGH', description: 'Tab switching detected' });
     }
-  });
+  };
 
-  window.addEventListener("beforeunload", () => {
-    localStorage.removeItem("exam_tab");
-  });
+  const handleBlur = () => {
+    onViolation({ type: 'TAB_SWITCH', severity: 'HIGH', description: 'Window lost focus' });
+  };
+
+  document.addEventListener('visibilitychange', handleVisibilityChange);
+  window.addEventListener('blur', handleBlur);
+
+  return () => {
+    document.removeEventListener('visibilitychange', handleVisibilityChange);
+    window.removeEventListener('blur', handleBlur);
+  };
 };

@@ -1,37 +1,22 @@
-import { io } from "socket.io-client";
+import { io } from 'socket.io-client';
 
-const socket = io("http://localhost:5000", {
-  transports: ["websocket"],
-  reconnection: true,
+export const socket = io('http://localhost:5000/exam', {
+  autoConnect: false
 });
 
-// -------------------- CONNECTION EVENTS --------------------
-
-socket.on("connect", () => {
-  console.log("⚡ Socket Connected:", socket.id);
-});
-
-socket.on("disconnect", () => {
-  console.log("❌ Socket Disconnected");
-});
-
-// -------------------- SEND TELEMETRY --------------------
-
-export const sendTelemetry = (data) => {
-  socket.emit("telemetry", {
-    timestamp: Date.now(),
-    ...data,
-  });
+export const connectSocket = (sessionId) => {
+  if (!socket.connected) {
+    socket.connect();
+  }
+  socket.emit('join_session', sessionId);
 };
 
-// -------------------- LISTEN LIVE UPDATES --------------------
-
-export const onRiskUpdate = (callback) => {
-  socket.on("liveUpdate", callback);
+export const disconnectSocket = () => {
+  if (socket.connected) {
+    socket.disconnect();
+  }
 };
 
-export const onForceSubmit = (callback) => {
-  socket.on("forceSubmit", callback);
+export const sendTelemetry = (sessionId, event) => {
+  socket.emit('telemetry_event', { sessionId, event });
 };
-
-export default socket;

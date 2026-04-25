@@ -1,32 +1,14 @@
-// backend/src/config/db.js
+import mongoose from 'mongoose';
+import dotenv from 'dotenv';
 
-import mongoose from "mongoose";
-import { logger } from "../utils/logger.js";
+dotenv.config();
 
 const connectDB = async () => {
   try {
-    const conn = await mongoose.connect(process.env.MONGO_URI, {
-      dbName: process.env.DB_NAME || "exam_proctoring",
-    });
-
-    logger.info(`🚀 MongoDB Connected: ${conn.connection.host}`);
-
-    // ------------------ CONNECTION EVENTS ------------------
-
-    mongoose.connection.on("error", (err) => {
-      logger.error(`❌ MongoDB Error: ${err.message}`);
-    });
-
-    mongoose.connection.on("disconnected", () => {
-      logger.warn("⚠️ MongoDB Disconnected");
-    });
-
-    mongoose.connection.on("reconnected", () => {
-      logger.info("🔄 MongoDB Reconnected");
-    });
-
+    const conn = await mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/verisight-ai');
+    console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
   } catch (error) {
-    logger.error(`❌ MongoDB Connection Failed: ${error.message}`);
+    console.error(`❌ Error connecting to MongoDB: ${error.message}`);
     process.exit(1);
   }
 };

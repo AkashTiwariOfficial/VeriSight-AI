@@ -1,129 +1,52 @@
-// backend/src/sockets/exam.socket.js
-
-import { Server } from "socket.io";
-import { predictCheatingProbability } from "../ml/cheatingModel.js";
-
-// In-memory stores (can be replaced with Redis later)
-const sessionStore = new Map(); // studentId → session data
-const examRooms = new Map(); // examId → Set(studentIds)
-
-// ------------------ INIT SOCKET ------------------
+import { Server } from 'socket.io';
+import { ScoringService } from '../services/scoring.service.js';
 
 export const initExamSocket = (server) => {
   const io = new Server(server, {
-    cors: {
-      origin: "*",
-    },
+    cors: { origin: '*' }
   });
 
-  io.on("connection", (socket) => {
-    console.log("⚡ Client connected:", socket.id);
+  const examNamespace = io.of('/exam');
 
-    // ------------------ JOIN EXAM ------------------
+  examNamespace.on('connection', (socket) => {
+    console.log(`🔌 Client connected to /exam: ${socket.id}`);
 
-    socket.on("join_exam", ({ examId, studentId }) => {
-      socket.join(examId);
-
-      if (!examRooms.has(examId)) {
-        examRooms.set(examId, new Set());
-      }
-
-      examRooms.get(examId).add(studentId);
-
-      sessionStore.set(studentId, {
-        history: [],
-        lastActivity: Date.now(),
-      });
-
-      console.log(`🎓 Student ${studentId} joined exam ${examId}`);
-
-      socket.emit("joined_successfully");
+    // Join room for specific exam session
+    socket.on('join_session', (sessionId) => {
+      socket.join(sessionId);
+      console.log(`👤 Socket ${socket.id} joined session ${sessionId}`);
     });
 
-    // ------------------ TELEMETRY ------------------
-
-    socket.on("telemetry", (payload) => {
+    // Handle incoming telemetry events from the frontend
+    socket.on('telemetry_event', async (data) => {
       try {
-        const { studentId, examId, features, device, network, audio } = payload;
+        const { sessionId, event } = data;
+        
+        // Process event through risk engine
+        const updatedSession = await ScoringService.processEvent(sessionId, event);
 
-        const session = sessionStore.get(studentId);
-        if (!session) return;
-
-        const result = predictCheatingProbability({
-          features,
-          device,
-          network,
-          audio,
-          history: session.history,
-          context: {
-            elapsedTime: Date.now() - session.startTime,
-          },
+        // Broadcast updated risk data to admins/dashboards listening on this session
+        examNamespace.to(sessionId).emit('risk_update', {
+          trustScore: updatedSession.trustScore,
+          cheatingProbability: updatedSession.cheatingProbability,
+          riskLevel: updatedSession.riskLevel,
+          status: updatedSession.status,
+          latestEvent: event
         });
 
-        // Save history
-        session.history.push({
-          probability: result.probability,
-          factors: result.factors,
-        });
-
-        // Keep last 20 entries
-        if (session.history.length > 20) {
-          session.history.shift();
+        // Notify client if force submitted
+        if (updatedSession.status === 'FORCE_SUBMITTED') {
+          examNamespace.to(sessionId).emit('force_submit', { reason: 'Trust score depleted due to multiple violations.' });
         }
-
-        session.lastActivity = Date.now();
-
-        // ------------------ EMIT TO PROCTOR ------------------
-
-        socket.to(examId).emit("live_update", {
-          studentId,
-          ...result,
-        });
-
-        // ------------------ CRITICAL ALERT ------------------
-
-        if (result.level === "Critical") {
-          socket.to(examId).emit("alert", {
-            studentId,
-            message: "🚨 High probability of cheating",
-            details: result,
-          });
-        }
-
       } catch (err) {
-        console.error("❌ Telemetry error:", err.message);
+        console.error('Telemetry processing error:', err.message);
       }
     });
 
-    // ------------------ HEARTBEAT ------------------
-
-    socket.on("heartbeat", ({ studentId }) => {
-      const session = sessionStore.get(studentId);
-      if (session) {
-        session.lastActivity = Date.now();
-      }
-    });
-
-    // ------------------ DISCONNECT ------------------
-
-    socket.on("disconnect", () => {
-      console.log("❌ Disconnected:", socket.id);
-      // (Optional: cleanup logic)
+    socket.on('disconnect', () => {
+      console.log(`❌ Client disconnected: ${socket.id}`);
     });
   });
-
-  // ------------------ CLEANUP LOOP ------------------
-
-  setInterval(() => {
-    const now = Date.now();
-
-    for (const [studentId, session] of sessionStore.entries()) {
-      if (now - session.lastActivity > 30000) {
-        console.log(`⚠️ Removing inactive student ${studentId}`);
-        sessionStore.delete(studentId);
-      }
-    }
-  }, 10000);
 
   return io;
 };

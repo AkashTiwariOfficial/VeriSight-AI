@@ -1,20 +1,25 @@
 export const preventDevTools = () => {
-  document.addEventListener("keydown", (e) => {
+  const handleKeyDown = (e) => {
+    // F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U
     if (
-      e.key === "F12" ||
-      (e.ctrlKey && e.shiftKey && ["I", "J", "C"].includes(e.key))
+      e.key === 'F12' ||
+      (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C')) ||
+      (e.ctrlKey && e.key === 'U')
     ) {
       e.preventDefault();
-      alert("⚠️ DevTools access is blocked during exam");
+      alert('Developer tools are disabled during the exam.');
     }
-  });
+  };
 
-  setInterval(() => {
-    const devtools = window.outerWidth - window.innerWidth > 160;
+  const handleContextMenu = (e) => {
+    e.preventDefault();
+  };
 
-    if (devtools) {
-      alert("⚠️ DevTools detected!");
-      window.location.reload();
-    }
-  }, 1000);
+  window.addEventListener('keydown', handleKeyDown);
+  window.addEventListener('contextmenu', handleContextMenu);
+
+  return () => {
+    window.removeEventListener('keydown', handleKeyDown);
+    window.removeEventListener('contextmenu', handleContextMenu);
+  };
 };

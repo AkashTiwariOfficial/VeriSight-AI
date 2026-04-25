@@ -1,38 +1,11 @@
-// backend/src/models/AuditLog.js
+import mongoose from 'mongoose';
 
-import mongoose from "mongoose";
+const auditLogSchema = new mongoose.Schema({
+  sessionId: { type: mongoose.Schema.Types.ObjectId, ref: 'Session', required: true },
+  action: { type: String, required: true }, // 'EXAM_STARTED', 'WARNING_ISSUED', 'AUTO_SUBMITTED'
+  details: { type: mongoose.Schema.Types.Mixed },
+  performedBy: { type: String, enum: ['SYSTEM', 'ADMIN', 'STUDENT'], required: true },
+  timestamp: { type: Date, default: Date.now }
+}, { timestamps: true });
 
-const auditLogSchema = new mongoose.Schema(
-  {
-    adminId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      required: true,
-    },
-
-    userId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      required: true,
-    },
-
-    sessionId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Session",
-      required: true,
-    },
-
-    action: {
-      type: String,
-      enum: ["WARNING_SENT", "EXAM_PAUSED", "FORCE_SUBMIT"],
-      required: true,
-    },
-
-    message: String,
-
-    metadata: Object,
-  },
-  { timestamps: true }
-);
-
-export default mongoose.model("AuditLog", auditLogSchema);
+export default mongoose.model('AuditLog', auditLogSchema);

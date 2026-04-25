@@ -1,90 +1,49 @@
-// backend/src/controllers/exam.controller.js
+import Session from '../models/Session.js';
 
-import Session from "../models/Session.js";
-
-// ▶️ Start Exam
-export const startExam = async (req, res) => {
+export const createSession = async (req, res, next) => {
   try {
+    const { userId, examId, deviceFingerprint } = req.body;
+    
     const session = await Session.create({
-      userId: req.user.id,
-      deviceFingerprint: req.body.deviceFingerprint,
+      userId,
+      examId,
+      deviceFingerprint,
+      trustScore: 100,
+      cheatingProbability: 0,
+      riskLevel: 'TRUSTED'
     });
 
-    res.status(201).json(session);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-};
-
-// 📡 Update Telemetry
-export const updateTelemetry = async (req, res) => {
-  try {
-    const { sessionId, event } = req.body;
-
-    const session = await Session.findById(sessionId);
-    if (!session) return res.status(404).json({ message: "Session not found" });
-
-    // Push event to timeline
-    session.timeline.push(event);
-
-    // Example updates
-    if (event.type === "TAB_SWITCH") session.tabSwitchCount += 1;
-    if (event.type === "IDLE") session.idleTime += event.duration || 0;
-
-    await session.save();
-
-    res.json({ success: true });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-};
-
-// ⛔ End Exam
-export const endExam = async (req, res) => {
-  try {
-    const { sessionId } = req.body;
-
-    const session = await Session.findByIdAndUpdate(
-      sessionId,
-      {
-        status: "completed",
-        endedAt: new Date(),
-      },
-      { new: true }
-    );
-
-    res.json(session);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-};
-
-// 📊 Get Session Details
-export const getSession = async (req, res) => {
-  try {
-    const session = await Session.findById(req.params.id).populate("userId", "name email");
-
-    if (!session) return res.status(404).json({ message: "Session not found" });
-
-    res.json(session);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-};
-
-
-export const createExam = async (req, res) => {
-  try {
-    const data = req.validatedData;
-
-    // DB logic later
     res.status(201).json({
       success: true,
-      message: "Exam created successfully",
-      data,
+      data: session
     });
+  } catch (error) {
+    next(error);
+  }
+};
 
-  } catch (err) {
-    res.status(500).json({ message: err.message });
+export const getSession = async (req, res, next) => {
+  try {
+    const session = await Session.findById(req.params.sessionId);
+    if (!session) return res.status(404).json({ success: false, message: 'Session not found' });
+    
+    res.status(200).json({
+      success: true,
+      data: session
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getExamSessions = async (req, res, next) => {
+  try {
+    const sessions = await Session.find().sort('-updatedAt');
+    res.status(200).json({
+      success: true,
+      data: sessions
+    });
+  } catch (error) {
+    next(error);
   }
 };
